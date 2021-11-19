@@ -1,19 +1,35 @@
 import './App.css';
 import {io} from "socket.io-client";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {setNewQuotes} from "./Redux/reducer";
-import axios from "axios";
 
 const socket = io.connect('http://localhost:4000');
 
 function App() {
     const dispatch = useDispatch();
     const quotes = useSelector(state => state.data.quotes);
+    const [newFetchInterval, setNewFetchInterval] = useState('');
+    const [nameTicker, setNameTicker] = useState('');
+    const [exchange, setExchange] = useState('');
     
-    const onToggleTickerStatus = async (nameTicker, status) => {
-        socket.emit('TICKER:OFF', {nameTicker, status});
-        // let response = await axios.post('http://localhost:4000', {nameTicker, status});
+    const onToggleTickerStatus = (nameTicker, status) => {
+        socket.emit('TICKER:STATUS_TOGGLE', {nameTicker, status});
+    }
+    
+    const onRemoveTicker =  (nameTicker) => {
+        socket.emit('TICKER:REMOVE', {nameTicker});
+    }
+    
+    const onSetNewFetchInterval = () => {
+        socket.emit('TICKER:SET_INTERVAL', {interval: newFetchInterval});
+        setNewFetchInterval('');
+    }
+    
+    const onAddNewTicker = () => {
+        socket.emit('TICKER:ADD', {nameTicker, exchange});
+        setNameTicker('');
+        setExchange('');
     }
     
     useEffect(() => {
@@ -22,6 +38,7 @@ function App() {
             dispatch(setNewQuotes(response))
         });
     }, []);
+    
     
     return (
         <div className="App">
@@ -43,11 +60,21 @@ function App() {
                                     ? <button onClick={() => onToggleTickerStatus(key.ticker, false)}>off</button>
                                     : <button onClick={() => onToggleTickerStatus(key.ticker, true)}>on</button>
                             }
+                            <button onClick={() => {onRemoveTicker(key.ticker)}}>remove</button>
                         </div>
                         <hr/>
                     </div>
                 ))
             }
+            <div>
+                <input type="number" placeholder='in ms format, example 1000' value={newFetchInterval} onChange={(e) => {setNewFetchInterval(e.target.value)}}/>
+                <button onClick={onSetNewFetchInterval}>set new interval</button>
+            </div>
+            <div>
+                <input type="text" placeholder='ticker name' value={nameTicker} onChange={(e) => {setNameTicker(e.target.value)}}/>
+                <input type="text" placeholder='exchange' value={exchange} onChange={(e) => {setExchange(e.target.value)}}/>
+                <button onClick={onAddNewTicker}>add new ticker</button>
+            </div>
         </div>
     );
 }

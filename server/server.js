@@ -16,7 +16,8 @@ const tickers = [
   {ticker: 'TSLA', status: true, exchange: 'NASDAQ'}, // Tesla
 ];
 
-let newTicker = [...tickers];
+let newTicker = [...tickers],
+    NEW_FETCH_INTERVAL = FETCH_INTERVAL;
 
 
 function randomValue(min = 0, max = 1, precision = 0) {
@@ -60,19 +61,25 @@ function getQuotes(socket) {
   });
 
   socket.emit('ticker', quotes);
+  socket.emit('TICKER:SET_INTERVAL', {NEW_FETCH_INTERVAL});
 }
 
-function trackTickers(socket) {
-  // run the first time immediately
-  getQuotes(socket);
+let timerID;
 
-  // every N seconds
-  const timer = setInterval(function() {
+function trackTickers(socket, resetTimer = false) {
+  
+  resetTimer ? clearInterval(timerID) : getQuotes(socket);
+  
+  timerID = setInterval(function() {
     getQuotes(socket);
-  }, FETCH_INTERVAL);
+  }, NEW_FETCH_INTERVAL);
+  
+  if (resetTimer) {
+    getQuotes(socket);
+  }
 
   socket.on('disconnect', function() {
-    clearInterval(timer);
+    clearInterval(timerID);
   });
 }
 
@@ -94,14 +101,34 @@ socketServer.on('connection', (socket) => {
   socket.on('start', () => {
     trackTickers(socket);
   });
-  socket.on('TICKER:OFF', ({nameTicker, status}) => {
+  
+  socket.on('TICKER:STATUS_TOGGLE', ({nameTicker, status}) => {
     newTicker = tickers.map(ticker => {
       if (ticker.ticker === nameTicker) {
         ticker.status = status;
       }
       return ticker
     })
-    trackTickers(socket);
+    trackTickers(socket, true);
+  });
+  
+  socket.on('TICKER:SET_INTERVAL', ({interval}) => {
+    NEW_FETCH_INTERVAL = interval;
+    trackTickers(socket, true);
+  });
+  
+  socket.on('TICKER:REMOVE', ({nameTicker}) => {
+    newTicker = tickers.filter(ticker => ticker.ticker !== nameTicker)
+    trackTickers(socket, true);
+  });
+  
+  socket.on('TICKER:ADD', ({nameTicker, exchange}) => {
+    newTicker.push({
+      ticker: nameTicker,
+      exchange: exchange,
+      status: true,
+    })
+    trackTickers(socket, true);
   });
 });
 
