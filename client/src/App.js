@@ -10,7 +10,9 @@ function App() {
     const dispatch = useDispatch();
     const quotes = useSelector(state => state.data.quotes);
     
-    console.log(quotes)
+    const onTickerOff = (nameTicker) => {
+    
+    }
     
     useEffect(() => {
         socket.emit('start');
@@ -23,7 +25,7 @@ function App() {
         <div className="App">
             {
                 quotes.map((key, index) => (
-                    <div key={index} style={{display: 'flex'}}>
+                    <div key={index} style={{display: 'flex', fontSize: '14px'}}>
                         <span >ticker: {key.ticker}--</span>
                         <span >exchange: {key.exchange}--</span>
                         <span >price: {key.price}--</span>
@@ -32,6 +34,7 @@ function App() {
                         <span >change: {key.change}--</span>
                         <span >dividend: {key.dividend}--</span>
                         <span >last trade time: {key.last_trade_time}--</span>
+                        <button onClick={() => onTickerOff(key.ticker)}>off</button>
                     </div>
                 ))
             }
