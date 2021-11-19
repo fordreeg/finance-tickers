@@ -8,13 +8,16 @@ const FETCH_INTERVAL = 5000;
 const PORT = process.env.PORT || 4000;
 
 const tickers = [
-  'AAPL', // Apple
-  'GOOGL', // Alphabet
-  'MSFT', // Microsoft
-  'AMZN', // Amazon
-  'FB', // Facebook
-  'TSLA', // Tesla
+  {ticker: 'AAPL', status: true, exchange: 'NASDAQ'}, // Apple
+  {ticker: 'GOOGL', status: true, exchange: 'NASDAQ'}, // Alphabet
+  {ticker: 'MSFT', status: true, exchange: 'NASDAQ'}, // Microsoft
+  {ticker: 'AMZN', status: true, exchange: 'NASDAQ'}, // Amazon
+  {ticker: 'FB', status: true, exchange: 'NASDAQ'}, // Facebook
+  {ticker: 'TSLA', status: true, exchange: 'NASDAQ'}, // Tesla
 ];
+
+let newTicker = [...tickers];
+
 
 function randomValue(min = 0, max = 1, precision = 0) {
   const random = Math.random() * (max - min) + min;
@@ -28,16 +31,33 @@ function utcDate() {
 
 function getQuotes(socket) {
 
-  const quotes = tickers.map(ticker => ({
-    ticker,
-    exchange: 'NASDAQ',
-    price: randomValue(100, 300, 2),
-    change: randomValue(0, 200, 2),
-    change_percent: randomValue(0, 1, 2),
-    dividend: randomValue(0, 1, 2),
-    yield: randomValue(0, 2, 2),
-    last_trade_time: utcDate(),
-  }));
+  const quotes = newTicker.map(ticker => {
+    if (ticker.status) {
+      return {
+        ticker: ticker.ticker,
+        exchange: ticker.exchange,
+        price: randomValue(100, 300, 2),
+        change: randomValue(0, 200, 2),
+        change_percent: randomValue(0, 1, 2),
+        dividend: randomValue(0, 1, 2),
+        yield: randomValue(0, 2, 2),
+        last_trade_time: utcDate(),
+        status: ticker.status
+      }
+    } else {
+      return {
+        ticker: ticker.ticker,
+        exchange: ticker.exchange,
+        price: null,
+        change: null,
+        change_percent: null,
+        dividend: null,
+        yield: null,
+        last_trade_time: null,
+        status: ticker.status
+      }
+    }
+  });
 
   socket.emit('ticker', quotes);
 }
@@ -74,7 +94,15 @@ socketServer.on('connection', (socket) => {
   socket.on('start', () => {
     trackTickers(socket);
   });
-  console.log('hello')
+  socket.on('TICKER:OFF', ({nameTicker, status}) => {
+    newTicker = tickers.map(ticker => {
+      if (ticker.ticker === nameTicker) {
+        ticker.status = status;
+      }
+      return ticker
+    })
+    trackTickers(socket);
+  });
 });
 
 server.listen(PORT, () => {
