@@ -1,25 +1,28 @@
 import './App.css';
 import {io} from "socket.io-client";
 import {useEffect, useState} from "react";
+import {useDispatch, useSelector} from "react-redux";
+import {setNewQuotes} from "./Redux/reducer";
 
 const socket = io.connect('http://localhost:4000');
 
 function App() {
-    const [state, setState] = useState([]);
+    const dispatch = useDispatch();
+    const quotes = useSelector(state => state.data.quotes);
+    
+    console.log(quotes)
     
     useEffect(() => {
         socket.emit('start');
         socket.on("ticker", (response) => {
-            setState(response)
+            dispatch(setNewQuotes(response))
         });
     }, []);
-    
-    console.log(state)
     
     return (
         <div className="App">
             {
-                state.map((key, index) => (
+                quotes.map((key, index) => (
                     <div key={index} style={{display: 'flex'}}>
                         <span >ticker: {key.ticker}--</span>
                         <span >exchange: {key.exchange}--</span>
