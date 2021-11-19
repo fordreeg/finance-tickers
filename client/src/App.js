@@ -20,16 +20,16 @@ function App() {
         <div className="App">
             {
                 state.map((key, index) => (
-                    <ul key={index} style={{display: 'flex'}}>
-                        <li >ticker: {key.ticker} </li>
-                        <li >exchange: {key.exchange} </li>
-                        <li >price: {key.price} </li>
-                        <li >yield: {key.yield} </li>
-                        <li >change percent: {key.change_percent} </li>
-                        <li >change: {key.change} </li>
-                        <li >dividend: {key.dividend} </li>
-                        <li >last trade time: {key.last_trade_time} </li>
-                    </ul>
+                    <div key={index} style={{display: 'flex'}}>
+                        <span >ticker: {key.ticker}--</span>
+                        <span >exchange: {key.exchange}--</span>
+                        <span >price: {key.price}--</span>
+                        <span >yield: {key.yield}--</span>
+                        <span >change percent: {key.change_percent}--</span>
+                        <span >change: {key.change}--</span>
+                        <span >dividend: {key.dividend}--</span>
+                        <span >last trade time: {key.last_trade_time}--</span>
+                    </div>
                 ))
             }
         </div>
