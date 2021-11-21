@@ -1,8 +1,13 @@
 import './App.css';
+import 'antd/dist/antd.css';
 import {io} from "socket.io-client";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
-import {setNewQuotes} from "./Redux/reducer";
+import {setNewQuotes, setQuotesWithStatusOff} from "./Redux/reducer";
+import {Input, Tabs, Tooltip, Button, Divider} from "antd";
+import {FieldBinaryOutlined, InfoCircleOutlined, RedoOutlined} from '@ant-design/icons';
+import ListTickers from "./Components/ListTickers/ListTickers";
+import Text from "antd/es/typography/Text";
 
 const socket = io.connect('http://localhost:4000');
 
@@ -17,12 +22,13 @@ function App() {
         socket.emit('TICKER:STATUS_TOGGLE', {nameTicker, status});
     }
     
-    const onRemoveTicker =  (nameTicker) => {
+    const onRemoveTicker = (nameTicker) => {
+        debugger
         socket.emit('TICKER:REMOVE', {nameTicker});
     }
     
     const onSetNewFetchInterval = () => {
-        socket.emit('TICKER:SET_INTERVAL', {interval: newFetchInterval});
+        socket.emit('TICKER:SET_INTERVAL', {interval: newFetchInterval * 1000});
         setNewFetchInterval('');
     }
     
@@ -41,42 +47,77 @@ function App() {
     
     
     return (
-        <div className="App">
-            {
-                quotes.map((key, index) => (
-                    <div key={index}>
-                        <div style={{display: 'flex', fontSize: '14px'}}>
-                            <span >ticker: {key.ticker}</span>
-                            <span >exchange: {key.exchange}</span>
-                            <span >price: {key.price}</span>
-                            <span >yield: {key.yield}</span>
-                            <span >change percent: {key.change_percent}--</span>
-                            <span >change: {key.change}</span>
-                            <span >dividend: {key.dividend}</span>
-                            <span >last trade time: {key.last_trade_time}</span>
-                            <span >status: {key.status ? 'ON' : 'OFF'}</span>
-                            {
-                                key.status
-                                    ? <button onClick={() => onToggleTickerStatus(key.ticker, false)}>off</button>
-                                    : <button onClick={() => onToggleTickerStatus(key.ticker, true)}>on</button>
-                            }
-                            <button onClick={() => {onRemoveTicker(key.ticker)}}>remove</button>
-                        </div>
-                        <hr/>
-                    </div>
-                ))
-            }
-            <div>
-                <input type="number" placeholder='in ms format, example 1000' value={newFetchInterval} onChange={(e) => {setNewFetchInterval(e.target.value)}}/>
-                <button onClick={onSetNewFetchInterval}>set new interval</button>
+        <>
+            <ListTickers quotes={quotes} removeTicker={onRemoveTicker}
+                         toggleTickerStatus={onToggleTickerStatus}/>
+            <div className="wrapper">
+                <IntervalInput setNewFetchInterval={setNewFetchInterval}
+                               onSetNewFetchInterval={onSetNewFetchInterval}
+                               newFetchInterval={newFetchInterval}
+                />
+                <NewTicker setNameTicker={setNameTicker} setExchange={setExchange}
+                           onAddNewTicker={onAddNewTicker} nameTicker={nameTicker}
+                           exchange={exchange}
+                />
             </div>
-            <div>
-                <input type="text" placeholder='ticker name' value={nameTicker} onChange={(e) => {setNameTicker(e.target.value)}}/>
-                <input type="text" placeholder='exchange' value={exchange} onChange={(e) => {setExchange(e.target.value)}}/>
-                <button onClick={onAddNewTicker}>add new ticker</button>
-            </div>
+        </>
+    );
+}
+
+const IntervalInput = ({setNewFetchInterval, newFetchInterval, onSetNewFetchInterval}) => {
+    return (
+        <div className='intervalInput'>
+            <Divider>
+                <Text type="secondary">Enter the number of seconds after which tickers should be updated</Text>
+            </Divider>
+            <Input
+                placeholder="Enter the number of seconds"
+                prefix={<FieldBinaryOutlined />}
+                onChange={(e) => {
+                    setNewFetchInterval(e.target.value)
+                }}
+                value={newFetchInterval}
+                type="number"
+                suffix={
+                    <Tooltip title="Enter the number of seconds after which tickers should be updated">
+                        <InfoCircleOutlined style={{ color: 'rgba(0,0,0,.45)' }} />
+                    </Tooltip>
+                }
+            />
+            <Button onClick={onSetNewFetchInterval} type="primary" disabled={newFetchInterval === ''}>
+                Set new interval
+            </Button>
         </div>
     );
+};
+
+const NewTicker = ({setNameTicker, setExchange, onAddNewTicker, nameTicker, exchange}) => {
+    return (
+        <div>
+            <Divider>
+                <Text type="secondary">Add new ticker</Text>
+            </Divider>
+            <Input
+                placeholder="Ticker name"
+                onChange={(e) => {
+                    setNameTicker(e.target.value)
+                }}
+                value={nameTicker}
+                type="text"
+            />
+            <Input
+                placeholder="Exchange"
+                onChange={(e) => {
+                    setExchange(e.target.value)
+                }}
+                value={exchange}
+                type="text"
+            />
+            <Button onClick={onAddNewTicker} type="primary" disabled={exchange === '' || nameTicker === ''}>
+                Add new ticker
+            </Button>
+        </div>
+    )
 }
 
 export default App;

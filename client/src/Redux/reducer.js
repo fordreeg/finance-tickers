@@ -1,5 +1,4 @@
 const SET_NEW_QUOTES = 'SET_NEW_QUOTES';
-const SET_NEW_FETCH_INTERVAL = 'SET_NEW_FETCH_INTERVAL';
 
 const initialState = {
     quotes: [],
@@ -18,7 +17,6 @@ export default function reducer(state = initialState, action) {
 
 const setNewQuotesAC = (quotes) => ({type: SET_NEW_QUOTES, quotes});
 export const setNewQuotes = (quotes) => (dispatch) => {
-    dispatch(setNewQuotesAC(quotes))
+    dispatch(setNewQuotesAC(quotes));
 }
-
 
