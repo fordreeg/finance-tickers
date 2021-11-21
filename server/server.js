@@ -58,7 +58,6 @@ function getQuotes(socket) {
   });
 
   socket.emit('ticker', quotes);
-  socket.emit('TICKER:SET_INTERVAL', {FETCH_INTERVAL});
 }
 
 let timerID;
@@ -74,7 +73,8 @@ function trackTickers(socket, resetTimer = false) {
   if (resetTimer) {
     getQuotes(socket);
   }
-
+  
+  socket.emit('TICKER:SET_INTERVAL', {FETCH_INTERVAL});
   socket.on('disconnect', function() {
     clearInterval(timerID);
   });
@@ -120,12 +120,18 @@ socketServer.on('connection', (socket) => {
   });
   
   socket.on('TICKER:ADD', ({nameTicker, exchange}) => {
-    tickers.push({
-      ticker: nameTicker,
-      exchange: exchange,
-      status: true,
-    })
-    trackTickers(socket, true);
+    const gg = tickers.some(key => key.ticker.toLowerCase() === nameTicker.toLowerCase());
+    if (!gg) {
+      tickers.push({
+        ticker: nameTicker,
+        exchange: exchange,
+        status: true,
+      });
+      socket.emit('TICKER:ADD_ERROR', {error: null});
+      trackTickers(socket, true);
+    } else {
+      socket.emit('TICKER:ADD_ERROR', {error: 'The ticker with the same name is already in the tracked list! '});
+    }
   });
 });
 

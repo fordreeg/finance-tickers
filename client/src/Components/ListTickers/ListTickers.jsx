@@ -3,14 +3,14 @@ import {Button, Space, Table, Tooltip} from "antd";
 import {DeleteOutlined, PoweroffOutlined, ReloadOutlined} from "@ant-design/icons";
 
 const ListTickers = ({quotes, toggleTickerStatus, removeTicker}) => {
-    
+
     
     const columns = [
         {
             title: 'Ticker',
             dataIndex: 'ticker',
             key: 'ticker',
-            // render: text => <a>{text}</a>,
+            render: text => <b>{text}</b>,
         },
         {
             title: 'Exchange',

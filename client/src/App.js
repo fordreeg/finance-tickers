@@ -4,7 +4,7 @@ import {io} from "socket.io-client";
 import {useEffect, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {setNewQuotes} from "./Redux/reducer";
-import {Input, Tooltip, Button, Divider} from "antd";
+import {Input, Tooltip, Button, Divider, Alert} from "antd";
 import {FieldBinaryOutlined, InfoCircleOutlined} from '@ant-design/icons';
 import ListTickers from "./Components/ListTickers/ListTickers";
 import Text from "antd/es/typography/Text";
@@ -18,6 +18,7 @@ function App() {
     const [newFetchInterval, setNewFetchInterval] = useState('');
     const [nameTicker, setNameTicker] = useState('');
     const [exchange, setExchange] = useState('');
+    const [error, setError] = useState(null);
     
     const onToggleTickerStatus = (nameTicker, status) => {
         socket.emit('TICKER:STATUS_TOGGLE', {nameTicker, status});
@@ -33,8 +34,10 @@ function App() {
     }
     
     const onAddNewTicker = async () => {
-        await axios.get('http://localhost:4000');
         socket.emit('TICKER:ADD', {nameTicker, exchange});
+        socket.on('TICKER:ADD_ERROR', (response) => {
+            setError(response.error);
+        });
         setNameTicker('');
         setExchange('');
     }
@@ -58,7 +61,7 @@ function App() {
                 />
                 <NewTicker setNameTicker={setNameTicker} setExchange={setExchange}
                            onAddNewTicker={onAddNewTicker} nameTicker={nameTicker}
-                           exchange={exchange}
+                           exchange={exchange} error={error}
                 />
             </div>
         </>
@@ -92,7 +95,7 @@ const IntervalInput = ({setNewFetchInterval, newFetchInterval, onSetNewFetchInte
     );
 };
 
-const NewTicker = ({setNameTicker, setExchange, onAddNewTicker, nameTicker, exchange}) => {
+const NewTicker = ({setNameTicker, setExchange, onAddNewTicker, nameTicker, exchange, error}) => {
     return (
         <div>
             <Divider>
@@ -117,6 +120,7 @@ const NewTicker = ({setNameTicker, setExchange, onAddNewTicker, nameTicker, exch
             <Button onClick={onAddNewTicker} type="primary" disabled={exchange === '' || nameTicker === ''}>
                 Add new ticker
             </Button>
+            {error && <span><Alert message={error} type="error" /></span>}
         </div>
     )
 }
