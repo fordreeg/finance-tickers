@@ -4,10 +4,10 @@ const http = require('http');
 const io = require('socket.io');
 const cors = require('cors');
 
-const FETCH_INTERVAL = 5000;
+let FETCH_INTERVAL = 5000;
 const PORT = process.env.PORT || 4000;
 
-const tickers = [
+let tickers = [
   {ticker: 'AAPL', status: true, exchange: 'NASDAQ'}, // Apple
   {ticker: 'GOOGL', status: true, exchange: 'NASDAQ'}, // Alphabet
   {ticker: 'MSFT', status: true, exchange: 'NASDAQ'}, // Microsoft
@@ -15,9 +15,6 @@ const tickers = [
   {ticker: 'FB', status: true, exchange: 'NASDAQ'}, // Facebook
   {ticker: 'TSLA', status: true, exchange: 'NASDAQ'}, // Tesla
 ];
-
-let newTicker = [...tickers],
-    NEW_FETCH_INTERVAL = FETCH_INTERVAL;
 
 
 function randomValue(min = 0, max = 1, precision = 0) {
@@ -32,7 +29,7 @@ function utcDate() {
 
 function getQuotes(socket) {
 
-  const quotes = newTicker.map(ticker => {
+  const quotes = tickers.map(ticker => {
     if (ticker.status) {
       return {
         ticker: ticker.ticker,
@@ -61,7 +58,7 @@ function getQuotes(socket) {
   });
 
   socket.emit('ticker', quotes);
-  socket.emit('TICKER:SET_INTERVAL', {NEW_FETCH_INTERVAL});
+  socket.emit('TICKER:SET_INTERVAL', {FETCH_INTERVAL});
 }
 
 let timerID;
@@ -72,7 +69,7 @@ function trackTickers(socket, resetTimer = false) {
   
   timerID = setInterval(function() {
     getQuotes(socket);
-  }, NEW_FETCH_INTERVAL);
+  }, FETCH_INTERVAL);
   
   if (resetTimer) {
     getQuotes(socket);
@@ -85,7 +82,6 @@ function trackTickers(socket, resetTimer = false) {
 
 const app = express();
 app.use(cors());
-app.use(express.json());
 const server = http.createServer(app);
 
 const socketServer = io(server, {
@@ -98,24 +94,13 @@ app.get('/', function(req, res) {
   res.sendFile(__dirname + '/index.html');
 });
 
-app.post('/', (req, res) => {
-  const {nameTicker, exchange} = req.body;
-  newTicker.push({
-    ticker: nameTicker,
-    exchange: exchange,
-    status: true,
-  })
-  console.log(nameTicker, exchange)
-  // res.send(rooms);
-});
-
 socketServer.on('connection', (socket) => {
   socket.on('start', () => {
     trackTickers(socket);
   });
   
   socket.on('TICKER:STATUS_TOGGLE', ({nameTicker, status}) => {
-    newTicker = tickers.map(ticker => {
+    tickers = tickers.map(ticker => {
       if (ticker.ticker === nameTicker) {
         ticker.status = status;
       }
@@ -125,17 +110,17 @@ socketServer.on('connection', (socket) => {
   });
   
   socket.on('TICKER:SET_INTERVAL', ({interval}) => {
-    NEW_FETCH_INTERVAL = interval;
+    FETCH_INTERVAL = interval;
     trackTickers(socket, true);
   });
   
   socket.on('TICKER:REMOVE', ({nameTicker}) => {
-    newTicker = tickers.filter(ticker => ticker.ticker !== nameTicker)
+    tickers = tickers.filter(ticker => ticker.ticker !== nameTicker)
     trackTickers(socket, true);
   });
   
   socket.on('TICKER:ADD', ({nameTicker, exchange}) => {
-    newTicker.push({
+    tickers.push({
       ticker: nameTicker,
       exchange: exchange,
       status: true,

@@ -1,11 +1,11 @@
 import './App.css';
 import 'antd/dist/antd.css';
 import {io} from "socket.io-client";
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
-import {setNewQuotes, setQuotesWithStatusOff} from "./Redux/reducer";
-import {Input, Tabs, Tooltip, Button, Divider} from "antd";
-import {FieldBinaryOutlined, InfoCircleOutlined, RedoOutlined} from '@ant-design/icons';
+import {setNewQuotes} from "./Redux/reducer";
+import {Input, Tooltip, Button, Divider} from "antd";
+import {FieldBinaryOutlined, InfoCircleOutlined} from '@ant-design/icons';
 import ListTickers from "./Components/ListTickers/ListTickers";
 import Text from "antd/es/typography/Text";
 import axios from "axios";
@@ -34,7 +34,7 @@ function App() {
     
     const onAddNewTicker = async () => {
         await axios.get('http://localhost:4000');
-        // socket.emit('TICKER:ADD', {nameTicker, exchange});
+        socket.emit('TICKER:ADD', {nameTicker, exchange});
         setNameTicker('');
         setExchange('');
     }

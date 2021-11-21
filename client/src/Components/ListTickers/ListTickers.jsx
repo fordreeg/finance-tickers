@@ -1,6 +1,6 @@
-import React, {useRef} from 'react';
+import React from 'react';
 import {Button, Space, Table, Tooltip} from "antd";
-import {DeleteOutlined, PauseCircleOutlined, PoweroffOutlined, ReloadOutlined, SearchOutlined} from "@ant-design/icons";
+import {DeleteOutlined, PoweroffOutlined, ReloadOutlined} from "@ant-design/icons";
 
 const ListTickers = ({quotes, toggleTickerStatus, removeTicker}) => {
     
