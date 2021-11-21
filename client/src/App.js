@@ -8,6 +8,7 @@ import {Input, Tabs, Tooltip, Button, Divider} from "antd";
 import {FieldBinaryOutlined, InfoCircleOutlined, RedoOutlined} from '@ant-design/icons';
 import ListTickers from "./Components/ListTickers/ListTickers";
 import Text from "antd/es/typography/Text";
+import axios from "axios";
 
 const socket = io.connect('http://localhost:4000');
 
@@ -23,7 +24,6 @@ function App() {
     }
     
     const onRemoveTicker = (nameTicker) => {
-        debugger
         socket.emit('TICKER:REMOVE', {nameTicker});
     }
     
@@ -32,8 +32,9 @@ function App() {
         setNewFetchInterval('');
     }
     
-    const onAddNewTicker = () => {
-        socket.emit('TICKER:ADD', {nameTicker, exchange});
+    const onAddNewTicker = async () => {
+        await axios.get('http://localhost:4000');
+        // socket.emit('TICKER:ADD', {nameTicker, exchange});
         setNameTicker('');
         setExchange('');
     }

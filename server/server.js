@@ -85,6 +85,7 @@ function trackTickers(socket, resetTimer = false) {
 
 const app = express();
 app.use(cors());
+app.use(express.json());
 const server = http.createServer(app);
 
 const socketServer = io(server, {
@@ -95,6 +96,17 @@ const socketServer = io(server, {
 
 app.get('/', function(req, res) {
   res.sendFile(__dirname + '/index.html');
+});
+
+app.post('/', (req, res) => {
+  const {nameTicker, exchange} = req.body;
+  newTicker.push({
+    ticker: nameTicker,
+    exchange: exchange,
+    status: true,
+  })
+  console.log(nameTicker, exchange)
+  // res.send(rooms);
 });
 
 socketServer.on('connection', (socket) => {
