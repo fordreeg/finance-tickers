@@ -127,10 +127,10 @@ socketServer.on('connection', (socket) => {
         exchange: exchange,
         status: true,
       });
-      socket.emit('TICKER:ADD_ERROR', {error: null});
+      socket.emit('TICKER:ADD_ERROR', null);
       trackTickers(socket, true);
     } else {
-      socket.emit('TICKER:ADD_ERROR', {error: 'The ticker with the same name is already in the tracked list! '});
+      socket.emit('TICKER:ADD_ERROR', 'The ticker with the same name is already in the tracked list!');
     }
   });
 });

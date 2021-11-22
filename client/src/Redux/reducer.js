@@ -15,7 +15,4 @@ export default function reducer(state = initialState, action) {
     }
 }
 
-const setNewQuotesAC = (quotes) => ({type: SET_NEW_QUOTES, quotes});
-export const setNewQuotes = (quotes) => (dispatch) => {
-    dispatch(setNewQuotesAC(quotes));
-}
+export const setNewQuotesAC = (quotes) => ({type: SET_NEW_QUOTES, quotes});
